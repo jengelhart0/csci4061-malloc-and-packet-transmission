@@ -8,16 +8,22 @@
 #define CHUNK_SIZE 64
 #define NUM_CHUNKS 1000000
 
+typedef enum command {PUT, GET};
+
 /* TODO - Fill this in */
 typedef struct {
     int chunk_size;
     int num_chunks;
     char *data;
-    char *next_free;
+    char **mem_stack;
+    char **next_free;
+    // contiguous sequence of ints used to efficiently prevent put()-ting same chunk multiple times
+    int *already_free;
 } mm_t;
 
 /* TODO - Implement these in mm.c */
 double comp_time(struct timeval time_s, struct timeval time_e);
+static int is_already_free(mm_t *mm, char *chunk, enum command porg);
 int mm_init(mm_t *mm, int num_chunks, int chunk_size);
 void *mm_get(mm_t *mm);
 void mm_put(mm_t *mm, void *chunk);
