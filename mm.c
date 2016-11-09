@@ -32,12 +32,15 @@ int mm_init(mm_t *mm, int hm, int sz) {
 
   // size allocated must be greater than 1?
   if(mm->chunk_size < 1){
-    fprintf(stderr, "Not a valid memory manager size input.\n", mm->chunk_size);
+    fprintf(stderr, "Not a valid memory manager size: %d.\n", mm->chunk_size);
   }
 
 
   mm->next_free = mm->data;  
-
+  //Do we need to worry bout memory manager running out of memory? If so,
+  if(mm->next_free == NULL){
+    perror("Failed to initialized Memory Manager, may be out of memory.");
+  }
   return 0;  /* TODO - return the right value */
 }
 
