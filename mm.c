@@ -30,6 +30,12 @@ int mm_init(mm_t *mm, int hm, int sz) {
     return -1;
   }
 
+  // size allocated must be greater than 1?
+  if(mm->chunk_size < 1){
+    fprintf(stderr, "Not a valid memory manager size input.\n", mm->chunk_size);
+  }
+
+
   mm->next_free = mm->data;  
 
   return 0;  /* TODO - return the right value */
