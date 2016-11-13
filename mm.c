@@ -77,14 +77,14 @@ int mm_init(mm_t *mm, int hm, int sz) {
 
   // get num_ints needed to have one bit to represent each chunk
   int num_ints = (hm / ((float) sizeof(int) * 8)) + 1;
-  if((mm->already_free = malloc(num_ints * sizeof(int))) == NULL) {
-     perror("Failed to callocate memory for already_free\n");
-     return -1;
-  }
+//  if((mm->already_free = malloc(num_ints * sizeof(int))) == NULL) {
+//     perror("Failed to allocate memory for already_free\n");
+//     return -1;
+//  }
   // by setting all bits in int array to 1, it indicates all chunks start free
-  for(i = 0; i < num_ints; i++) {
-    *((mm->already_free) + i) = -1;
-  }
+//  for(i = 0; i < num_ints; i++) {
+//    *((mm->already_free) + i) = -1;
+//  }
 
   return 0;  /* TODO - return the right value */
 }
@@ -96,10 +96,10 @@ void *mm_get(mm_t *mm) {
   if(mm->next_free >= mm->mem_stack) { 
     void* requested; 
     requested = *(mm->next_free);
-    if(is_already_free(mm, (char *) requested, GET) == -1) {
-      perror("Illegal command passed to is_already_free: exiting\n");
-      exit(0);
-    }					    
+//    if(is_already_free(mm, (char *) requested, GET) == -1) {
+//      perror("Illegal command passed to is_already_free: exiting\n");
+//      exit(0);
+//    }					    
     mm->next_free -= 1;
     return requested;
 
@@ -124,13 +124,13 @@ void mm_put(mm_t *mm, void *chunk) {
     fprintf(stderr, "Chunk %p does not reference beginning of a valid memory segment\n", casted_chunk);
   }
 
-  else if((is_free = is_already_free(mm, casted_chunk, PUT)) == -1) {
-    fprintf(stderr, "Illegal command passed to is_already_free()\n");
-  }
+//  else if((is_free = is_already_free(mm, casted_chunk, PUT)) == -1) {
+//    fprintf(stderr, "Illegal command passed to is_already_free()\n");
+//  }
 
-  else if(is_free) {
-    fprintf(stderr, "Chunk is already free!\n");
-  }
+//  else if(is_free) {
+//    fprintf(stderr, "Chunk is already free!\n");
+//  }
 
   // push chunk onto mem_stack 
   else {
@@ -143,7 +143,7 @@ void mm_put(mm_t *mm, void *chunk) {
 void mm_release(mm_t *mm) {
   free(mm->data);
   free(mm->mem_stack);
-  free(mm->already_free);
+//  free(mm->already_free);
   free(mm);
 }
 

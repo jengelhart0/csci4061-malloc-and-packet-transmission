@@ -88,32 +88,32 @@ void run_test(int chunk_size, int num_chunks) {
     }
 
     // retest mm_put to check for re-put handling
-    for(i = 0; i < 4; i++) {
-	printf("\nPutting chunk %d, address %p back on mem_stack\n", i, putchunks[i]);
-        mm_put(testptr, putchunks[i]);    
-    }
+//    for(i = 0; i < 4; i++) {
+//	printf("\nPutting chunk %d, address %p back on mem_stack\n", i, putchunks[i]);
+//        mm_put(testptr, putchunks[i]);    
+//    }
 
     // retest mm_get when all blocks should be free again
 
-    for(i = 0; i < num_trials; i++) {
+//    for(i = 0; i < num_trials; i++) {
 
-	print_stack(testptr);       
+//	print_stack(testptr);       
 
-        testchunk = mm_get(testptr);
-	putchunks[i] = testchunk;
-
-	printf("Current chunk from get(): %p\n", testchunk); 
-	new_char = rand() % 93 + 33;
-	if (new_char == 32) new_char++;
-	printf("Testchunk %ld being set to ", (testchunk - testptr->data) / chunk_size); 
-	for(j = 0; j < chunk_size; j++) {
-	    *(testchunk + j) = new_char;
-	    printf("%c", *(testchunk + j));
-	}
-	printf("\n");
-	print_memory(testptr, num_chunks, chunk_size);       
-
-    }	
+//      testchunk = mm_get(testptr);
+//	putchunks[i] = testchunk;
+//
+//	printf("Current chunk from get(): %p\n", testchunk); 
+//	new_char = rand() % 93 + 33;
+//	if (new_char == 32) new_char++;
+//	printf("Testchunk %ld being set to ", (testchunk - testptr->data) / chunk_size); 
+//	for(j = 0; j < chunk_size; j++) {
+//	    *(testchunk + j) = new_char;
+//	    printf("%c", *(testchunk + j));
+//	}
+//	printf("\n");
+//	print_memory(testptr, num_chunks, chunk_size);       
+//
+//    }	
 
 }
 
