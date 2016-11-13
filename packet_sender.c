@@ -24,6 +24,7 @@ static packet_t get_packet() {
 
   packet_t pkt;
 
+  // this section initializes how_many if no packets have been sent (i.e., we're at beginning)
   if (num_of_packets_sent == 0) {
     how_many = rand() % MAX_PACKETS;
     if (how_many == 0) {
@@ -34,7 +35,8 @@ static packet_t get_packet() {
     for (i = 0; i < MAX_PACKETS; ++i) {
       is_packet_sent[i] = 0;
     }
-  }
+  } // end how_many init
+  
   which = rand() % how_many;
   if (is_packet_sent[which] == 1) {
     i = (which + 1) % how_many;
@@ -73,9 +75,22 @@ static void packet_sender(int sig) {
   pkt_cnt++;
 
   // TODO Create a packet_queue_msg for the current packet.
+  packet_queue_msg *pqm;
+  pqm = (packet_queue_msg *) malloc(sizeof(packet_queue_msg));
+  pqm->pkt = pkt;
+  pqm->mtype = QUEUE_MSG_TYPE;
+
   // TODO send this packet_queue_msg to the receiver. Handle any error appropriately.
+
+  if(msgsnd(msqid, pqm, sizeof(packet_t), 0) == -1) {
+      perror("Failed to send packet to message queue: exiting\n");
+      exit(0);
+  }
   // TODO send SIGIO to the receiver if message sending was successful.
-  
+  if(kill(receiver_pid, SIGIO) == -1) {
+      perror("Failed to signal receiver process with SIGIO using kill(): aborting\n");
+      exit(0);
+  }
 }
 
 int main(int argc, char **argv) {
@@ -94,9 +109,20 @@ int main(int argc, char **argv) {
   struct sigaction act;           
 
   /* TODO Create a message queue */ 
+
+  if((msqid = msgget(key, PERMS)) == -1) {
+      perror("Failed to create message queue: aborting\n");
+      exit(0);
+  }
  
   /*  TODO read the receiver pid from the queue and store it for future use*/
-  
+
+  pid_queue_msg r_pid;
+  if(msgrcv(msqid, &r_pid, sizeof(int), 0, 0) == -1) {
+      perror("Failed to get receiver pid from message queue: exiting\n");
+      exit(0);
+  }
+  receiver_pid = r_pid.pid;   
   printf("Got pid : %d\n", receiver_pid);
  
   /* TODO - set up alarm handler -- mask all signals within it */
@@ -105,13 +131,28 @@ int main(int argc, char **argv) {
    * but we want to make sure act is properly initialized.
    */
 
+  act.sa_handler = packet_sender;
+  act.sa_flags = 0;
+  if( (sigfillset(&act.sa_mask) == -1) ||
+      (sigaction(SIGALRM, &act, NULL) == -1) ) {
+   
+      perror("Failed to set SIGALRM signal handler: exiting\n");
+      exit(0);
+  } 
+
   /*  
    * TODO - turn on alarm timer ...
    * use  INTERVAL and INTERVAL_USEC for sec and usec values
   */
 
+  interval.it_interval.tv_sec = INTERVAL;
+  interval.it_interval.tv_usec = INTERVAL_USEC;
+  interval.it_value.tv_sec = INTERVAL;
+  interval.it_value.tv_usec = INTERVAL_USEC;
 
   /* And the timer */
+
+  setitimer(ITIMER_REAL, &interval, NULL);
 
   /* NOTE: the below code wont run now as you have not set the SIGALARM handler. Hence, 
      set up the SIGALARM handler and the timer first. */

@@ -40,6 +40,9 @@ static char *assemble_message() {
   /* TODO - Allocate msg and assemble packets into it */
 
 
+  // <-- I think we malloc a portion of memory as a message_t structure to hold our assembled message...
+
+
   /* reset these for next message */
   pkt_total = 1;
   pkt_cnt = 0;

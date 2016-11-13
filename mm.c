@@ -76,7 +76,7 @@ int mm_init(mm_t *mm, int hm, int sz) {
   mm->next_free = (mm->mem_stack) + (i - 1);  
 
   // get num_ints needed to have one bit to represent each chunk
-  int num_ints = (hm / ((float) sizeof(int) * 8)) + 1;
+//  int num_ints = (hm / ((float) sizeof(int) * 8)) + 1;
 //  if((mm->already_free = malloc(num_ints * sizeof(int))) == NULL) {
 //     perror("Failed to allocate memory for already_free\n");
 //     return -1;
