@@ -54,6 +54,11 @@ int mm_init(mm_t *mm, int hm, int sz) {
   mm->num_chunks = hm;
   mm->chunk_size = sz;
 
+  // size allocated must be greater than 1?
+  if(mm->chunk_size < 1){
+    fprintf(stderr, "Not a valid memory manager size: %d.\n", mm->chunk_size);
+  }
+
   if((mm->mem_stack = (char **) malloc(sizeof(char *) * hm)) == NULL) {
     perror("Failed to allocate memory for memory stack\n");
     return -1;
