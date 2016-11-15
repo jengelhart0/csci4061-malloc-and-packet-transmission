@@ -20,11 +20,21 @@ static int pkt_total = 1;   /* how many packets to be received for the message *
 static void packet_handler(int sig) {
   packet_t pkt;
   void *chunk;
-      
+  packet_queue_msg pqm;    
   // TODO get the "packet_queue_msg" from the queue.
 
-
+  if(msgrcv(msqid, &pqm, sizeof(packet_t), QUEUE_MSG_TYPE, 0) == -1) {
+      perror("Failed to receive packet from message queue: exiting\n");
+      exit(0); 
+  }
+  pkt_total = pkt.how_many;
   // TODO extract the packet from "packet_queue_msg" and store it in the memory from memory manager
+  pkt = pqm.pkt;
+  void* mem_block = mm_get(&mm);
+  memcpy(mem_block, &(pkt.data), sizeof(data_t));
+
+  message.data[pkt.which] = mem_block;
+  message.num_packets++;
 }
 
 /*
@@ -39,9 +49,17 @@ static char *assemble_message() {
 
   /* TODO - Allocate msg and assemble packets into it */
 
-
-  // <-- I think we malloc a portion of memory as a message_t structure to hold our assembled message...
-
+  if((msg = (char *) malloc(msg_len + 1)) == NULL) {
+      perror("Failed to allocate space for assemble_message: exiting\n");
+      exit(0);
+  }
+  /* assemble message in order indicated by message.data (pkt pointers stored in message.data at index = which) */
+  int pktsize = sizeof(data_t);
+  for(i = 0; i < message.num_packets; i++) {
+      memcpy(msg + (i * pktsize), (message.data)[i], pktsize);
+  }
+  *(msg + msg_len) = '\0';
+  printf("Message is: %s\n", msg);
 
   /* reset these for next message */
   pkt_total = 1;
@@ -60,16 +78,42 @@ int main(int argc, char **argv) {
   int k = atoi(argv[1]); /* no of messages you will get from the sender */
   int i;
   char *msg;
+  struct sigaction act;
 
   /* TODO - init memory manager for NUM_CHUNKS chunks of size CHUNK_SIZE each */
 
+  mm_init(&mm, NUM_CHUNKS, CHUNK_SIZE);
   message.num_packets = 0;
 
   /* TODO initialize msqid to send pid and receive messages from the message queue. Use the key in packet.h */
   
+  msqid = msgget(key, PERMS);
+
   /* TODO send process pid to the sender on the queue */
+
+  pid_queue_msg *pidqm;
+  if((pidqm = (pid_queue_msg *) malloc(sizeof(pid_queue_msg))) == NULL) {
+      perror("Failed to allocate pid_queue_msg for packet_receiver to put in queue: aborting\n");
+      exit(0);
+  }
+  pidqm->mtype = QUEUE_MSG_TYPE;
+  pidqm->pid = getpid();
+
+  if(msgsnd(msqid, pidqm, sizeof(int), 0) == -1) {
+      perror("Failed to send receiver pid into message queue: aborting\n");
+      exit(0);
+  }
   
   /* TODO set up SIGIO handler to read incoming packets from the queue. Check packet_handler()*/
+
+  act.sa_handler = packet_handler;
+  act.sa_flags = 0;
+  if( (sigfillset(&act.sa_mask) == -1) ||
+      (sigaction(SIGIO, &act, NULL) == -1) ) {
+      
+      perror("Failed to set SIGIO signal handler: exiting\n");
+      exit(0);
+  }
 
   for (i = 1; i <= k; i++) {
     while (pkt_cnt < pkt_total) {
@@ -88,7 +132,13 @@ int main(int argc, char **argv) {
 
   // TODO deallocate memory manager
 
+  mm_release(&mm);
+
   // TODO remove the queue once done
+  if(msgctl(msqid, IPC_RMID, NULL) == -1) {
+    perror("Failed to destroy message queue: exiting\n");
+    exit(0);
+  }
   
   return EXIT_SUCCESS;
 }

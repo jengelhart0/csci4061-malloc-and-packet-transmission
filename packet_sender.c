@@ -50,6 +50,7 @@ static packet_t get_packet() {
 
   }
   pkt.how_many = how_many;
+  pkt_total = how_many;
   pkt.which = which;
 
   memset(pkt.data, 'a' + which, sizeof(data_t));
@@ -76,7 +77,10 @@ static void packet_sender(int sig) {
 
   // TODO Create a packet_queue_msg for the current packet.
   packet_queue_msg *pqm;
-  pqm = (packet_queue_msg *) malloc(sizeof(packet_queue_msg));
+  if((pqm = (packet_queue_msg *) malloc(sizeof(packet_queue_msg))) == NULL) {
+      perror("Failed to allocate packet_queue_msg for packet_sender: aborting\n");
+      exit(0);
+  }
   pqm->pkt = pkt;
   pqm->mtype = QUEUE_MSG_TYPE;
 
@@ -118,7 +122,7 @@ int main(int argc, char **argv) {
   /*  TODO read the receiver pid from the queue and store it for future use*/
 
   pid_queue_msg r_pid;
-  if(msgrcv(msqid, &r_pid, sizeof(int), 0, 0) == -1) {
+  if(msgrcv(msqid, &r_pid, sizeof(int), QUEUE_MSG_TYPE, 0) == -1) {
       perror("Failed to get receiver pid from message queue: exiting\n");
       exit(0);
   }
