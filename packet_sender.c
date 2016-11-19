@@ -1,3 +1,9 @@
+/* CSCI4061 F2016 Assignment 3
+* login: engel429
+* date: 11/19/2016
+* section: 7
+* name: Joey Engelhart, Dawei Luo, Jerry Nguyen (for partner(s))
+* id: engel429, luoxx417, nguy1544 */
 
 #include <time.h>
 #include "packet.h"
@@ -75,7 +81,7 @@ static void packet_sender(int sig) {
   printf ("Sending packet: %s\n", temp);
   pkt_cnt++;
 
-  // TODO Create a packet_queue_msg for the current packet.
+  // Create a packet_queue_msg for the current packet.
   packet_queue_msg *pqm;
   if((pqm = (packet_queue_msg *) malloc(sizeof(packet_queue_msg))) == NULL) {
       perror("Failed to allocate packet_queue_msg for packet_sender: aborting\n");
@@ -84,15 +90,21 @@ static void packet_sender(int sig) {
   pqm->pkt = pkt;
   pqm->mtype = QUEUE_MSG_TYPE;
 
-  // TODO send this packet_queue_msg to the receiver. Handle any error appropriately.
+  // send this packet_queue_msg to the receiver. Handle any error appropriately.
 
   if(msgsnd(msqid, pqm, sizeof(packet_t), 0) == -1) {
       perror("Failed to send packet to message queue: exiting\n");
+      if (msgctl(msqid, IPC_RMID, NULL) == -1) {
+          perror("Failed to destroy msgq!\n");
+      }
       exit(0);
   }
-  // TODO send SIGIO to the receiver if message sending was successful.
+  // send SIGIO to the receiver if message sending was successful.
   if(kill(receiver_pid, SIGIO) == -1) {
       perror("Failed to signal receiver process with SIGIO using kill(): aborting\n");
+      if (msgctl(msqid, IPC_RMID, NULL) == -1) {
+          perror("Failed to destroy msgq!\n");
+      }
       exit(0);
   }
 }
@@ -112,24 +124,28 @@ int main(int argc, char **argv) {
   struct itimerval interval;
   struct sigaction act;           
 
-  /* TODO Create a message queue */ 
+  /* Create a message queue */ 
 
-  if((msqid = msgget(key, PERMS)) == -1) {
+  if((msqid = msgget(key, IPC_CREAT | 0600)) == -1) {
       perror("Failed to create message queue: aborting\n");
       exit(0);
   }
  
-  /*  TODO read the receiver pid from the queue and store it for future use*/
+  /* read the receiver pid from the queue and store it for future use*/
 
   pid_queue_msg r_pid;
+  printf("Waiting for receiver pid.\n");
   if(msgrcv(msqid, &r_pid, sizeof(int), QUEUE_MSG_TYPE, 0) == -1) {
       perror("Failed to get receiver pid from message queue: exiting\n");
+      if (msgctl(msqid, IPC_RMID, NULL) == -1) {
+          perror("Failed to destroy msgq!\n");
+      }
       exit(0);
   }
   receiver_pid = r_pid.pid;   
   printf("Got pid : %d\n", receiver_pid);
  
-  /* TODO - set up alarm handler -- mask all signals within it */
+  /* set up alarm handler -- mask all signals within it */
   /* The alarm handler will get the packet and send the packet to the receiver. Check packet_sender();
    * Don't care about the old mask, and SIGALRM will be blocked for us anyway,
    * but we want to make sure act is properly initialized.
@@ -145,7 +161,7 @@ int main(int argc, char **argv) {
   } 
 
   /*  
-   * TODO - turn on alarm timer ...
+   * turn on alarm timer ...
    * use  INTERVAL and INTERVAL_USEC for sec and usec values
   */
 
