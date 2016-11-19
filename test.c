@@ -87,6 +87,13 @@ void run_test(int chunk_size, int num_chunks) {
 
     }
 
+    // test overrun on mm_get
+    int overrun = 4;
+    for(i = 0; i < num_trials + overrun; i++) {
+        fprintf(stderr, "Trying to get chunk %d of %d\n", i + 1, testptr->num_chunks);
+        testchunk = mm_get(testptr);
+    }
+
     // retest mm_put to check for re-put handling
 //    for(i = 0; i < 4; i++) {
 //	printf("\nPutting chunk %d, address %p back on mem_stack\n", i, putchunks[i]);

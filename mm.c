@@ -153,7 +153,6 @@ void mm_release(mm_t *mm) {
   free(mm->data);
   free(mm->mem_stack);
 //  free(mm->already_free);
-//  free(mm);
 }
 
 /*
