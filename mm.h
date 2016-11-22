@@ -17,8 +17,6 @@ typedef struct {
     char *data;
     char **mem_stack;
     char **next_free;
-    // contiguous sequence of ints used to efficiently prevent mm_put()-ting same chunk multiple times
-    int *already_free;
 } mm_t;
 
 /* Implement these in mm.c */
