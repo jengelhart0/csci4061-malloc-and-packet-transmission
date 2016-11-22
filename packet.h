@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
+#include <sys/stat.h>
 
 #include "mm.h"
 
@@ -20,6 +21,7 @@
 #define MSGSIZE 128
 #define key 4061 /* key which will be used for identifying the queue */
 #define QUEUE_MSG_TYPE 1 /* message type for queue messages. Send receive only these types of messages from the queue */
+#define PERMS (S_IRUSR | S_IWUSR) /* message queue perms */
 
 typedef char data_t[PACKET_SIZE];
 
